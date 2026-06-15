@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="New Zealand trip icon">
+  <rect width="512" height="512" fill="#0f5132"/>
+  <path fill="#f7f5ef" d="M107 362c52-88 96-132 132-132 28 0 41 28 65 28 21 0 40-39 71-84 18 69 17 128-4 176-61 18-149 22-264 12Z"/>
+  <circle cx="171" cy="146" r="42" fill="#f2c14e"/>
+  <path fill="none" stroke="#f7f5ef" stroke-width="26" stroke-linecap="round" d="M126 406c57-33 107-39 151-19 37 17 73 15 109-5"/>
+</svg>
