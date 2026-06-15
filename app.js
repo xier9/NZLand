@@ -2,7 +2,7 @@ let trip = null;
 const STORAGE_KEYS = {
   startDate: "nz-trip-start-date"
 };
-const APP_VERSION = "strong-primary-v11";
+const APP_VERSION = "credential-autofill-v12";
 
 const safeStorage = {
   get(key) {
@@ -478,7 +478,7 @@ function bindEvents() {
     const primaryValue = elements.tripPasswordPrimary.value.trim();
     const secondaryValue = elements.tripPasswordSecondary.value.trim();
     if (!primaryValue || !secondaryValue) {
-      elements.authError.textContent = "密碼不正確，請再試一次。";
+      elements.authError.textContent = "名稱或密碼不正確，請再試一次。";
       (primaryValue ? elements.tripPasswordSecondary : elements.tripPasswordPrimary).select();
       return;
     }
@@ -493,7 +493,7 @@ function bindEvents() {
       updateTripStatus();
       render();
     } catch {
-      elements.authError.textContent = "密碼不正確，或目前瀏覽器不支援安全解鎖。";
+      elements.authError.textContent = "名稱或密碼不正確，或目前瀏覽器不支援安全解鎖。";
       elements.tripPasswordPrimary.select();
     }
   });
