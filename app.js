@@ -2,10 +2,7 @@ let trip = null;
 const STORAGE_KEYS = {
   startDate: "nz-trip-start-date"
 };
-const AUTH_SALT = "nz-trip-auth-v3:";
-const AUTH_PRIMARY_HASH = "9c887915f8c08";
-const AUTH_SECONDARY_HASH = "1936cfb256f422";
-const APP_VERSION = "encrypted-login-v9";
+const APP_VERSION = "decrypt-only-v10";
 
 const safeStorage = {
   get(key) {
@@ -76,20 +73,6 @@ const elements = {
   searchInput: document.querySelector("#searchInput"),
   modeButtons: [...document.querySelectorAll(".mode-button")]
 };
-
-function hashPassword(value) {
-  let h1 = 0xdeadbeef;
-  let h2 = 0x41c6ce57;
-  const str = `${AUTH_SALT}${value}`;
-  for (let i = 0; i < str.length; i += 1) {
-    const ch = str.charCodeAt(i);
-    h1 = Math.imul(h1 ^ ch, 2654435761);
-    h2 = Math.imul(h2 ^ ch, 1597334677);
-  }
-  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
-  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16);
-}
 
 function base64ToBytes(value) {
   return Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
@@ -494,11 +477,9 @@ function bindEvents() {
     event.preventDefault();
     const primaryValue = elements.tripPasswordPrimary.value.trim();
     const secondaryValue = elements.tripPasswordSecondary.value.trim();
-    const primaryMatches = hashPassword(primaryValue) === AUTH_PRIMARY_HASH;
-    const secondaryMatches = hashPassword(secondaryValue) === AUTH_SECONDARY_HASH;
-    if (!primaryMatches || !secondaryMatches) {
+    if (!primaryValue || !secondaryValue) {
       elements.authError.textContent = "密碼不正確，請再試一次。";
-      (primaryMatches ? elements.tripPasswordSecondary : elements.tripPasswordPrimary).select();
+      (primaryValue ? elements.tripPasswordSecondary : elements.tripPasswordPrimary).select();
       return;
     }
     try {
@@ -512,7 +493,7 @@ function bindEvents() {
       updateTripStatus();
       render();
     } catch {
-      elements.authError.textContent = "行程解鎖失敗，請確認使用 HTTPS 或 localhost 開啟。";
+      elements.authError.textContent = "密碼不正確，或目前瀏覽器不支援安全解鎖。";
       elements.tripPasswordPrimary.select();
     }
   });
