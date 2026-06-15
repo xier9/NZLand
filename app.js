@@ -2,7 +2,7 @@ let trip = null;
 const STORAGE_KEYS = {
   startDate: "nz-trip-start-date"
 };
-const APP_VERSION = "decrypt-only-v10";
+const APP_VERSION = "strong-primary-v11";
 
 const safeStorage = {
   get(key) {
