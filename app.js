@@ -3,7 +3,7 @@ const STORAGE_KEYS = {
   startDate: "nz-trip-start-date",
   packingChecklist: "nz-trip-packing-checklist"
 };
-const APP_VERSION = "packing-checklist-v14";
+const APP_VERSION = "packing-checklist-v13";
 
 const safeStorage = {
   get(key) {
@@ -338,16 +338,7 @@ function updatePackingProgress() {
   if (bar) bar.style.width = `${percent}%`;
 }
 
-function isDepartureEve() {
-  return diffDays(todayAtMidnight(), parseLocalDate(state.tripStartDate)) === 1;
-}
-
 function renderPackingChecklist() {
-  if (!isDepartureEve()) {
-    elements.packingChecklist.innerHTML = "";
-    return;
-  }
-
   const checks = getPackingChecks();
   const progress = packingProgress(checks);
   const percent = progress.total ? Math.round((progress.done / progress.total) * 100) : 0;
