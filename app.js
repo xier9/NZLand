@@ -1,8 +1,10 @@
 let trip = null;
 const STORAGE_KEYS = {
-  startDate: "nz-trip-start-date"
+  startDate: "nz-trip-start-date",
+  preDepartureChecks: "nz-trip-predeparture-checks-v1"
 };
-const APP_VERSION = "credential-autofill-v12";
+const APP_VERSION = "predeparture-checklist-v13";
+const PRE_DEPARTURE_ID = "predeparture";
 
 const safeStorage = {
   get(key) {
@@ -227,7 +229,16 @@ function updateTripStatus() {
 }
 
 function renderTabs() {
-  elements.dayTabs.innerHTML = trip.days
+  const preDepartureActive = state.selectedDayId === PRE_DEPARTURE_ID ? " is-active" : "";
+  const preDepartureTab = trip.preDepartureChecklist
+    ? `
+      <button class="day-tab${preDepartureActive}" type="button" data-day-id="${PRE_DEPARTURE_ID}">
+        出發前
+        <small>物品檢查清單</small>
+      </button>
+    `
+    : "";
+  const dayTabs = trip.days
     .map((day) => {
       const active = day.id === state.selectedDayId ? " is-active" : "";
       const label = day.day === 0 ? "出發" : `Day ${day.day}`;
@@ -239,6 +250,7 @@ function renderTabs() {
       `;
     })
     .join("");
+  elements.dayTabs.innerHTML = preDepartureTab + dayTabs;
 }
 
 function renderSummaryAlerts(days) {
@@ -318,6 +330,142 @@ function dayAlertsForDay(day, includeTitle = false) {
   }
 
   return alerts;
+}
+
+function loadPreDepartureChecks() {
+  try {
+    return JSON.parse(safeStorage.get(STORAGE_KEYS.preDepartureChecks) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function savePreDepartureCheck(id, checked) {
+  const checks = loadPreDepartureChecks();
+  if (checked) {
+    checks[id] = true;
+  } else {
+    delete checks[id];
+  }
+  safeStorage.set(STORAGE_KEYS.preDepartureChecks, JSON.stringify(checks));
+}
+
+function preDepartureSearchText() {
+  const checklist = trip.preDepartureChecklist;
+  if (!checklist) return "";
+  return [
+    checklist.title,
+    checklist.subtitle,
+    ...(checklist.illustrations || []).flatMap((illustration) => [illustration.title, illustration.text]),
+    ...(checklist.sections || []).flatMap((section) => [
+      section.title,
+      section.lead,
+      ...(section.items || []).map((item) => item.text)
+    ])
+  ].join(" ").toLowerCase();
+}
+
+function comicIllustrationSvg(variant) {
+  const windy = variant === "wind";
+  const sun = variant === "sun";
+  const coat = windy ? "#0f5132" : "#155e75";
+  const accent = sun ? "#f5b942" : "#86c5da";
+  const scarf = windy ? "#d95f43" : "#89a94d";
+  const extra = windy
+    ? `
+      <path d="M18 34c18-12 36-12 54 0" />
+      <path d="M12 54c16-9 31-9 45 0" />
+      <path d="M136 42c16-9 31-9 45 0" />
+    `
+    : `
+      <circle cx="154" cy="34" r="15" class="fill-accent" />
+      <path d="M154 9v10M154 49v10M129 34h10M169 34h10M136 16l7 7M171 16l-7 7M136 52l7-7M171 52l-7-7" />
+    `;
+  return `
+    <svg class="comic-svg" viewBox="0 0 200 150" role="img" aria-hidden="true">
+      <defs>
+        <filter id="paperShadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="#1d2521" flood-opacity="0.16" />
+        </filter>
+      </defs>
+      <rect x="8" y="8" width="184" height="134" rx="8" class="comic-bg" />
+      <g class="comic-lines">${extra}</g>
+      <g filter="url(#paperShadow)">
+        <circle cx="96" cy="43" r="18" class="skin" />
+        <path d="M80 42c6-19 27-19 34-2" class="hair" />
+        <path d="M76 73c5-15 13-23 25-23s20 8 25 23l8 42H68l8-42Z" fill="${coat}" />
+        <path d="M78 74c12 8 28 8 43 0" class="stitch" />
+        <path d="M84 64c10 9 24 9 35 0" stroke="${scarf}" class="scarf" />
+        <path d="M90 117v18M113 117v18" class="limb" />
+        <path d="M73 84l-17 20M129 84l17 20" class="limb" />
+        ${windy ? `<path d="M75 28c8-13 35-13 44 0v13H75V28Z" fill="${accent}" /><path d="M72 40h50" class="stitch" />` : ""}
+      </g>
+      <path d="M35 124h130" class="ground" />
+    </svg>
+  `;
+}
+
+function renderPreDepartureChecklist() {
+  const checklist = trip.preDepartureChecklist;
+  if (!checklist) return `<div class="empty-state">尚未建立出發前清單。</div>`;
+  const checks = loadPreDepartureChecks();
+  const items = (checklist.sections || []).flatMap((section) => section.items || []);
+  const doneCount = items.filter((item) => checks[item.id]).length;
+  const totalCount = items.length;
+
+  const illustrations = checklist.illustrations?.length
+    ? `
+      <div class="comic-grid">
+        ${checklist.illustrations.map((illustration) => `
+          <article class="comic-panel">
+            ${comicIllustrationSvg(illustration.variant)}
+            <div>
+              <h3>${escapeHtml(illustration.title)}</h3>
+              <p>${formatText(illustration.text)}</p>
+            </div>
+          </article>
+        `).join("")}
+      </div>
+    `
+    : "";
+
+  return `
+    <section class="day-section predeparture-section" id="${PRE_DEPARTURE_ID}">
+      <div class="day-hero">
+        <div class="day-title-row">
+          <div>
+            <p class="eyebrow">Before Departure</p>
+            <h2>${escapeHtml(checklist.title)}</h2>
+          </div>
+          <span class="day-date">${doneCount}/${totalCount}</span>
+        </div>
+        ${checklist.subtitle ? `<p class="route-line"><span>${escapeHtml(checklist.subtitle)}</span></p>` : ""}
+        <div class="check-progress" aria-label="清單完成進度">
+          <span style="width: ${totalCount ? Math.round((doneCount / totalCount) * 100) : 0}%"></span>
+        </div>
+      </div>
+      ${illustrations}
+      <div class="checklist-board">
+        ${(checklist.sections || []).map((section) => `
+          <article class="check-section">
+            <h3>${escapeHtml(section.title)}</h3>
+            ${section.lead ? `<p>${formatText(section.lead)}</p>` : ""}
+            <div class="check-items">
+              ${(section.items || []).map((item) => {
+                const checked = checks[item.id] ? " checked" : "";
+                return `
+                  <label class="check-item ${checked ? "is-checked" : ""}">
+                    <input class="predeparture-check" type="checkbox" data-check-id="${escapeHtml(item.id)}"${checked}>
+                    <span>${formatText(item.text)}</span>
+                  </label>
+                `;
+              }).join("")}
+            </div>
+          </article>
+        `).join("")}
+      </div>
+    </section>
+  `;
 }
 
 function renderItem(item) {
@@ -441,6 +589,7 @@ function renderDay(day) {
 function selectedDays() {
   const query = state.search.trim().toLowerCase();
   if (state.mode === "all" || query) return trip.days.filter((day) => dayMatchesSearch(day, query));
+  if (state.selectedDayId === PRE_DEPARTURE_ID) return [];
   if (state.mode === "day" || state.mode === "current") {
     const selected = trip.days.find((day) => day.id === state.selectedDayId);
     return [selected || getDefaultDay()];
@@ -456,11 +605,17 @@ function selectedDays() {
 
 function render() {
   if (!state.isUnlocked) return;
+  const query = state.search.trim().toLowerCase();
+  const showPreDeparture = state.selectedDayId === PRE_DEPARTURE_ID || ((state.mode === "all" || query) && preDepartureSearchText().includes(query));
   const days = selectedDays();
   renderTabs();
   renderSummaryAlerts(days);
-  elements.itineraryView.innerHTML = days.length
-    ? days.map(renderDay).join("")
+  const sections = [
+    ...(showPreDeparture ? [renderPreDepartureChecklist()] : []),
+    ...days.map(renderDay)
+  ];
+  elements.itineraryView.innerHTML = sections.length
+    ? sections.join("")
     : `<div class="empty-state">沒有找到符合的行程。</div>`;
 }
 
@@ -522,6 +677,13 @@ function bindEvents() {
   });
 
   elements.itineraryView.addEventListener("change", (event) => {
+    const checklistInput = event.target.closest(".predeparture-check");
+    if (checklistInput) {
+      savePreDepartureCheck(checklistInput.dataset.checkId, checklistInput.checked);
+      render();
+      return;
+    }
+
     if (event.target.id !== "tripStartDate" || !isValidDateKey(event.target.value)) return;
     state.tripStartDate = event.target.value;
     safeStorage.set(STORAGE_KEYS.startDate, state.tripStartDate);

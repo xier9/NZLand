@@ -530,6 +530,169 @@ h1 {
   color: var(--muted);
 }
 
+.predeparture-section {
+  gap: 14px;
+}
+
+.check-progress {
+  height: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(15, 81, 50, 0.18);
+  border-radius: 999px;
+  background: var(--green-soft);
+}
+
+.check-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--green);
+  transition: width 180ms ease;
+}
+
+.comic-grid,
+.checklist-board {
+  display: grid;
+  gap: 12px;
+}
+
+.comic-panel,
+.check-section {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.comic-panel {
+  display: grid;
+  grid-template-columns: minmax(120px, 38%) 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+}
+
+.comic-panel h3,
+.check-section h3 {
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.comic-panel h3 {
+  font-size: 1.02rem;
+}
+
+.comic-panel p,
+.check-section p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-weight: 650;
+}
+
+.comic-svg {
+  display: block;
+  width: 100%;
+  min-width: 112px;
+  height: auto;
+}
+
+.comic-svg .comic-bg {
+  fill: #fff8de;
+  stroke: #1d2521;
+  stroke-width: 2.2;
+}
+
+.comic-svg .comic-lines,
+.comic-svg .limb,
+.comic-svg .ground,
+.comic-svg .stitch,
+.comic-svg .scarf {
+  fill: none;
+  stroke: #1d2521;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.comic-svg .comic-lines {
+  stroke-width: 2.8;
+  opacity: 0.42;
+}
+
+.comic-svg .limb,
+.comic-svg .ground {
+  stroke-width: 5;
+}
+
+.comic-svg .stitch,
+.comic-svg .scarf {
+  stroke-width: 4;
+}
+
+.comic-svg .skin {
+  fill: #ffd9a6;
+  stroke: #1d2521;
+  stroke-width: 2.4;
+}
+
+.comic-svg .hair {
+  fill: #49321f;
+  stroke: #1d2521;
+  stroke-width: 2;
+}
+
+.comic-svg .fill-accent {
+  fill: #f5b942;
+  stroke: #1d2521;
+  stroke-width: 2.4;
+}
+
+.check-section {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.check-section h3 {
+  font-size: 1.08rem;
+}
+
+.check-items {
+  display: grid;
+  gap: 8px;
+}
+
+.check-item {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 9px;
+  align-items: start;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  color: #2f3934;
+  font-weight: 700;
+}
+
+.check-item input {
+  width: 22px;
+  height: 22px;
+  margin: 1px 0 0;
+  accent-color: var(--green);
+}
+
+.check-item.is-checked {
+  border-color: rgba(15, 81, 50, 0.34);
+  background: var(--green-soft);
+}
+
+.check-item.is-checked span {
+  color: var(--green);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
 #installDialog {
   border: 0;
   border-radius: 8px;
@@ -591,5 +754,28 @@ h1 {
 
   .image-gallery {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+
+  .comic-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .checklist-board {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .check-section {
+    align-content: start;
+  }
+}
+
+@media (max-width: 520px) {
+  .comic-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .comic-svg {
+    max-width: 260px;
+    margin: 0 auto;
   }
 }
