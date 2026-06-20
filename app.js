@@ -1,9 +1,8 @@
 let trip = null;
 const STORAGE_KEYS = {
-  startDate: "nz-trip-start-date",
-  packingChecklist: "nz-trip-packing-checklist"
+  startDate: "nz-trip-start-date"
 };
-const APP_VERSION = "packing-checklist-v14";
+const APP_VERSION = "credential-autofill-v12";
 
 const safeStorage = {
   get(key) {
@@ -50,77 +49,6 @@ const typeLabels = {
   checklist: "檢查"
 };
 
-const packingChecklistGroups = [
-  {
-    id: "departure-return",
-    title: "出發/回程衣著",
-    items: ["短T", "薄上衣", "軟質褲子", "防風羽絨外套"]
-  },
-  {
-    id: "clothes",
-    title: "衣物(10天份)",
-    items: [
-      "上衣：發熱衣*2、帽T*3",
-      "褲子：褲子*3、發熱褲*1",
-      "長睡衣*1、內褲*11",
-      "免洗襪*11",
-      "內衣*2、護墊*11、衛生棉*2、夜用*2",
-      "毛帽、手套、圍脖、暖暖包*6"
-    ]
-  },
-  {
-    id: "outfits",
-    title: "穿搭提醒",
-    items: [
-      "風大時的穿搭：防風外套+上衣+發熱衣+褲子+發熱褲+發熱襪+毛帽（要能遮住耳朵）+手套+圍脖（圍脖真的很好用可以充當頸枕還可以用來擋住副駕窗戶的大太陽）",
-      "出太陽時無風的穿搭：「羽絨外套+厚上衣+褲子」或是「厚上衣加發熱衣+褲子不穿外套」"
-    ]
-  },
-  {
-    id: "toiletries",
-    title: "盥洗用品",
-    items: [
-      "免洗牙膏+牙刷*20份",
-      "(M洗臉巾*9)、毛巾*2、浴巾*1",
-      "化妝包：洗臉、化妝棉、護唇膏(藍)、面膜",
-      "浴帽*13、止癢乳液",
-      "隱形眼鏡*13副、角塑用品(鏡/藥水/濕潤液/食鹽水*2)",
-      "沐浴精、洗髮精、護髮素"
-    ]
-  },
-  {
-    id: "medicine",
-    title: "藥包",
-    items: ["常備藥、退燒藥水、頭痛藥、感冒藥、酸痛貼布、OK蹦、優碘、酒精棉片"]
-  },
-  {
-    id: "homestay",
-    title: "民宿用品",
-    items: [
-      "洗衣球、衣架、衣夾",
-      "紙拖鞋*4、拖鞋*4(防水)、廁所用*1、中垃圾袋*7",
-      "廚房用：平底鍋(能用在IH爐的)、鍋鏟和菜瓜布、小刀和刨刀、筷子*4/鋁箔紙/封口保鮮袋/可折疊的保冷袋/保鮮盒/購物袋",
-      "充電器、充電線、小米延長線+萬國插座",
-      "咖啡包*26"
-    ]
-  },
-  {
-    id: "day-bag",
-    title: "隨身包包",
-    items: [
-      "太陽眼鏡、帽子、行動電源、保溫杯",
-      "防曬乳、護唇膏、護手霜(黏)",
-      "護照、行程、eSIM",
-      "不論哪裡的公廁都有面紙和乾洗手"
-    ]
-  },
-  {
-    id: "car",
-    title: "車用",
-    items: ["車架、充電器、車用面紙*2、國際駕照、車用遮陽片、行李鎖、黑色圾垃袋*5"]
-  }
-];
-
 const state = {
   selectedDayId: null,
   mode: "current",
@@ -141,7 +69,6 @@ const elements = {
   installDialog: document.querySelector("#installDialog"),
   dayTabs: document.querySelector("#dayTabs"),
   summaryAlerts: document.querySelector("#summaryAlerts"),
-  packingChecklist: document.querySelector("#packingChecklist"),
   itineraryView: document.querySelector("#itineraryView"),
   searchInput: document.querySelector("#searchInput"),
   modeButtons: [...document.querySelectorAll(".mode-button")]
@@ -292,105 +219,6 @@ function escapeHtml(value) {
 
 function formatText(value) {
   return escapeHtml(value).replaceAll("\n", "<br>");
-}
-
-function getPackingChecks() {
-  const raw = safeStorage.get(STORAGE_KEYS.packingChecklist);
-  if (!raw) return {};
-  try {
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-function setPackingCheck(id, checked) {
-  const checks = getPackingChecks();
-  if (checked) {
-    checks[id] = true;
-  } else {
-    delete checks[id];
-  }
-  safeStorage.set(STORAGE_KEYS.packingChecklist, JSON.stringify(checks));
-}
-
-function packingItemId(group, index) {
-  return `${group.id}-${index}`;
-}
-
-function packingItemIds() {
-  return packingChecklistGroups.flatMap((group) => group.items.map((_, index) => packingItemId(group, index)));
-}
-
-function packingProgress(checks = getPackingChecks()) {
-  const ids = packingItemIds();
-  const done = ids.filter((id) => checks[id]).length;
-  return { done, total: ids.length };
-}
-
-function updatePackingProgress() {
-  const progress = packingProgress();
-  const percent = progress.total ? Math.round((progress.done / progress.total) * 100) : 0;
-  const count = elements.packingChecklist?.querySelector("[data-packing-count]");
-  const bar = elements.packingChecklist?.querySelector("[data-packing-progress]");
-  if (count) count.textContent = `${progress.done}/${progress.total} 已確認`;
-  if (bar) bar.style.width = `${percent}%`;
-}
-
-function isDepartureEve() {
-  return diffDays(todayAtMidnight(), parseLocalDate(state.tripStartDate)) === 1;
-}
-
-function renderPackingChecklist() {
-  if (!isDepartureEve()) {
-    elements.packingChecklist.innerHTML = "";
-    return;
-  }
-
-  const checks = getPackingChecks();
-  const progress = packingProgress(checks);
-  const percent = progress.total ? Math.round((progress.done / progress.total) * 100) : 0;
-
-  elements.packingChecklist.innerHTML = `
-    <div class="packing-header">
-      <div>
-        <p class="eyebrow">Pre-trip Checklist</p>
-        <h2>行前物品檢查清單</h2>
-      </div>
-      <span class="packing-count" data-packing-count>${progress.done}/${progress.total} 已確認</span>
-    </div>
-    <div class="packing-progress" aria-hidden="true">
-      <span data-packing-progress style="width: ${percent}%"></span>
-    </div>
-    <div class="packing-layout">
-      <article class="packing-illustration">
-        <img src="./assets/packing-windy-outfit.png" alt="風大時穿著防風外套、毛帽、手套與圍脖的漫畫風旅行插圖" loading="lazy" decoding="async">
-        <div>
-          <h3>風大時先照這套穿</h3>
-          <p>毛帽要蓋住耳朵，圍脖可保暖、可當頸枕，也能擋副駕窗戶的大太陽。</p>
-        </div>
-      </article>
-      <div class="packing-groups">
-        ${packingChecklistGroups.map((group) => `
-          <article class="packing-group">
-            <h3>${escapeHtml(group.title)}</h3>
-            <div class="packing-items">
-              ${group.items.map((item, index) => {
-                const id = packingItemId(group, index);
-                return `
-                  <label class="packing-item ${checks[id] ? "is-checked" : ""}" for="packing-${escapeHtml(id)}">
-                    <input id="packing-${escapeHtml(id)}" type="checkbox" data-packing-id="${escapeHtml(id)}" ${checks[id] ? "checked" : ""}>
-                    <span>${escapeHtml(item)}</span>
-                  </label>
-                `;
-              }).join("")}
-            </div>
-          </article>
-        `).join("")}
-      </div>
-    </div>
-  `;
 }
 
 function updateTripStatus() {
@@ -631,7 +459,6 @@ function render() {
   const days = selectedDays();
   renderTabs();
   renderSummaryAlerts(days);
-  renderPackingChecklist();
   elements.itineraryView.innerHTML = days.length
     ? days.map(renderDay).join("")
     : `<div class="empty-state">沒有找到符合的行程。</div>`;
@@ -694,14 +521,6 @@ function bindEvents() {
     render();
   });
 
-  elements.packingChecklist.addEventListener("change", (event) => {
-    const checkbox = event.target.closest("[data-packing-id]");
-    if (!checkbox) return;
-    setPackingCheck(checkbox.dataset.packingId, checkbox.checked);
-    checkbox.closest(".packing-item")?.classList.toggle("is-checked", checkbox.checked);
-    updatePackingProgress();
-  });
-
   elements.itineraryView.addEventListener("change", (event) => {
     if (event.target.id !== "tripStartDate" || !isValidDateKey(event.target.value)) return;
     state.tripStartDate = event.target.value;
@@ -725,7 +544,6 @@ function bindEvents() {
     state.selectedDayId = null;
     elements.itineraryView.innerHTML = "";
     elements.summaryAlerts.innerHTML = "";
-    elements.packingChecklist.innerHTML = "";
     elements.dayTabs.innerHTML = "";
     elements.authError.textContent = "";
     elements.tripPasswordPrimary.value = "";
