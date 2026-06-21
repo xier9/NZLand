@@ -1,4 +1,4 @@
-const CACHE_NAME = "nz-trip-offline-v34";
+const CACHE_NAME = "nz-trip-offline-v37";
 const ASSETS = [
   "./",
   "./index.html",
@@ -14,7 +14,8 @@ const ASSETS = [
   "./assets/image3.jpg",
   "./assets/image4.png",
   "./assets/image4.jpg",
-  "./assets/akl-international-ground-floor-map.svg"
+  "./assets/akl-international-ground-floor-map.png",
+  "./assets/akl-international-ground-floor-map-full-window.png"
 ];
 
 self.addEventListener("install", (event) => {
