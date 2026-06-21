@@ -3,7 +3,7 @@ const STORAGE_KEYS = {
   startDate: "nz-trip-start-date",
   preDepartureChecks: "nz-trip-predeparture-checks-v1"
 };
-const APP_VERSION = "predeparture-checklist-v13";
+const APP_VERSION = "flight-link-updates-v14";
 const PRE_DEPARTURE_ID = "predeparture";
 
 const safeStorage = {
